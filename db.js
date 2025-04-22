@@ -10,4 +10,8 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
+pool.connect()
+    .then(() => console.log('Banco de dados PostgreSQL conectado com sucesso!'))
+    .catch(err => console.error('Erro ao conectar ao banco de dados:', err));
+
 export default pool;

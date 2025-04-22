@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import pool from "./db.js";
 import cors from 'cors';
@@ -26,18 +25,15 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
 app.get("/empresas", async (req, res) => {
+    console.log("Requisição GET recebida em /empresas");
     const { estado, especialidade, valor, genero, atendimento } = req.query;
 
-    let query = `
-        SELECT *
-        FROM empresas
-        WHERE TRUE
-    `;
+    let query = `SELECT * FROM empresas WHERE TRUE`;
     const params = [];
     let paramIndex = 1;
 
@@ -70,24 +66,20 @@ app.get("/empresas", async (req, res) => {
     }
 
     if (atendimento && atendimento !== "") {
-        
         if (atendimento === "ambos") {
             // Não aplica filtro
         } else if (atendimento === "presencial") {
             query += ` AND (LOWER(unaccent(atendimento)) = LOWER(unaccent($${paramIndex})) OR LOWER(unaccent(atendimento)) = LOWER(unaccent('ambos')))`;
             params.push(atendimento);
             paramIndex++;
-            
         } else if (atendimento === "remoto") {
             query += ` AND (LOWER(unaccent(atendimento)) = LOWER(unaccent($${paramIndex})) OR LOWER(unaccent(atendimento)) = LOWER(unaccent('ambos')))`;
             params.push(atendimento);
             paramIndex++;
-
         } else {
             query += ` AND LOWER(unaccent(atendimento)) = LOWER(unaccent($${paramIndex}))`;
             params.push(atendimento);
             paramIndex++;
-
         }
     }
 
@@ -101,21 +93,16 @@ app.get("/empresas", async (req, res) => {
 });
 
 app.get("/profissional", async (req, res) => {
+    console.log("Requisição GET recebida em /empresas");
     const { especialidade, valor, genero, atendimento, estado } = req.query;
 
-    let query = `
-        SELECT *
-        FROM profissional
-        WHERE TRUE
-    `;
-
+    let query = `SELECT * FROM profissional WHERE TRUE`;
     const params = [];
     let paramIndex = 1;
 
     const removerAcentos = (str) => {
         return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     };
-
 
     if (genero && genero !== "") {
         query += ` AND LOWER(unaccent(genero)) = LOWER(unaccent($${paramIndex}))`;
@@ -143,11 +130,8 @@ app.get("/profissional", async (req, res) => {
             query += ` AND valor <= $${paramIndex}`;
             params.push(max);
             paramIndex++;
-        } else if (max === Infinity && !isNaN(min)) {
         }
     }
-
-
 
     if (atendimento && atendimento !== "") {
         query += ` AND LOWER(unaccent(atendimento)) = LOWER(unaccent($${paramIndex}))`;
@@ -170,7 +154,8 @@ app.get("/profissional", async (req, res) => {
     }
 });
 
-app.post("/empresas", upload.single('foto'), async (req, res) => { // Adicione o middleware 'upload.single('foto')' aqui
+app.post("/empresas", upload.single('foto'), async (req, res) => {
+    console.log("Requisição POST recebida em /profissional");
     try {
         const { empresa, tipo, email, telefone, cidade, estado, cep, servico } = req.body;
         const fotoPath = req.file ? req.file.path : null;
@@ -180,7 +165,7 @@ app.post("/empresas", upload.single('foto'), async (req, res) => { // Adicione o
             [empresa, tipo, email, telefone, fotoPath, cidade, estado, cep, servico]
         );
         res.json(result.rows[0]);
-        console.log("Formulário de empresa enviado com sucesso!")
+        console.log("Formulário de empresa enviado com sucesso!");
     } catch (error) {
         console.error(error);
         res.status(500).send("Erro ao adicionar empresa");
@@ -189,18 +174,25 @@ app.post("/empresas", upload.single('foto'), async (req, res) => { // Adicione o
 
 app.post("/profissional", upload.single('foto'), async (req, res) => {
     try {
+        console.log("Recebidos dados para cadastro de profissional:", req.body);
         const { nome, sobrenome, email, telefone, especialidade, cr, genero, valor, publicoAlvo, atendimento, cidade, estado, cep, servico } = req.body;
         const fotoPath = req.file ? req.file.path : null;
+        console.log("Caminho da foto:", fotoPath);
 
-        const result = await pool.query(
-            "INSERT INTO profissional (nome, sobrenome, email, telefone, especialidade, cr, genero, valor, publicoAlvo, atendimento, cidade, estado, cep, foto, servico) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING id, foto",
-            [nome, sobrenome, email, telefone, especialidade, cr, genero, valor, publicoAlvo, atendimento, cidade, estado, cep, fotoPath, servico]
-        );
+        const query = `
+            INSERT INTO profissional (nome, sobrenome, email, telefone, especialidade, cr, genero, valor, "publicoAlvo", atendimento, cidade, estado, cep, foto, servico)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING id, foto
+        `;
+        const values = [nome, sobrenome, email, telefone, especialidade, cr, genero, valor, publicoAlvo, atendimento, cidade, estado, cep, fotoPath, servico];
+        console.log("Query a ser executada:", query);
+        console.log("Valores a serem inseridos:", values);
 
+        const result = await pool.query(query, values);
         res.json(result.rows[0]);
-        console.log("Formulário de profissional enviado com sucesso!")
+        console.log("Cadastro de profissional realizado com sucesso no banco de dados.");
     } catch (error) {
-        console.error(error);
+        console.error("Erro ao adicionar profissional:", error);
         res.status(500).send("Erro ao adicionar profissional");
     }
 });
