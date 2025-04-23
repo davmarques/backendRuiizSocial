@@ -175,16 +175,16 @@ app.post("/empresas", upload.single('foto'), async (req, res) => {
 app.post("/profissional", upload.single('foto'), async (req, res) => {
     try {
         console.log("Recebidos dados para cadastro de profissional:", req.body);
-        const { nome, sobrenome, email, telefone, especialidade, cr, genero, valor, publicoAlvo, atendimento, cidade, estado, cep, servico } = req.body;
+        const { nome, sobrenome, email, telefone, especialidade, cr, genero, valor, atendimento, cidade, estado, cep, servico } = req.body;
         const fotoPath = req.file ? req.file.path : null;
         console.log("Caminho da foto:", fotoPath);
 
         const query = `
-            INSERT INTO profissional (nome, sobrenome, email, telefone, especialidade, cr, genero, valor, "publicoAlvo", atendimento, cidade, estado, cep, foto, servico)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            INSERT INTO profissional (nome, sobrenome, email, telefone, especialidade, cr, genero, valor, atendimento, cidade, estado, cep, foto, servico)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             RETURNING id, foto
         `;
-        const values = [nome, sobrenome, email, telefone, especialidade, cr, genero, valor, publicoAlvo, atendimento, cidade, estado, cep, fotoPath, servico];
+        const values = [nome, sobrenome, email, telefone, especialidade, cr, genero, valor, atendimento, cidade, estado, cep, fotoPath, servico];
         console.log("Query a ser executada:", query);
         console.log("Valores a serem inseridos:", values);
 
