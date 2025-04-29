@@ -83,6 +83,9 @@ app.get("/empresas", async (req, res) => {
         }
     }
 
+    // 👉 LIMITANDO para apenas 30 empresas
+    query += ` LIMIT 30`;
+
     try {
         const result = await pool.query(query, params);
         res.json(result.rows);
@@ -92,8 +95,9 @@ app.get("/empresas", async (req, res) => {
     }
 });
 
+
 app.get("/profissional", async (req, res) => {
-    console.log("Requisição GET recebida em /empresas");
+    console.log("Requisição GET recebida em /profissional");
     const { especialidade, valor, genero, atendimento, estado } = req.query;
 
     let query = `SELECT * FROM profissional WHERE TRUE`;
@@ -144,6 +148,9 @@ app.get("/profissional", async (req, res) => {
         params.push(estado);
         paramIndex++;
     }
+
+    // 👉 LIMITANDO para apenas 30 profissionais
+    query += ` LIMIT 30`;
 
     try {
         const result = await pool.query(query, params);
