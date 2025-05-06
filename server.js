@@ -188,13 +188,14 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
 
         const {
             nome, sobrenome, email, telefone,
-            especialidade, cr, genero, valor,
+            especialidade, cr, genero, valorNum,
             atendimento, cidade, estado, cep, servico
         } = req.body;
 
-        valor = valor ? parseFloat(valor) : null;
+        valorNum = valor ? parseFloat(valor) : null;
 
         // Verifica se a imagem foi enviada
+        const consultaSocial = req.body.consultaSocial || "sim";
         const fotoPath = req.file ? req.file.path : null;
         console.log("Caminho da foto:", fotoPath);
 
@@ -203,15 +204,16 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
             return res.status(400).send("Campos obrigatórios faltando");
         }
 
+
         const query = `
             INSERT INTO profissional (
                 nome, sobrenome, email, telefone,
                 especialidade, cr, genero, valor,
                 atendimento, cidade, estado, cep,
-                foto, servico
+                foto, servico, consulta_social
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-                    $9, $10, $11, $12, $13, $14)
+                    $9, $10, $11, $12, $13, $14, $15)
             RETURNING id, foto
         `;
 
@@ -219,7 +221,7 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
             nome, sobrenome, email, telefone,
             especialidade, cr, genero, valor,
             atendimento, cidade, estado, cep,
-            fotoPath, servico
+            fotoPath, servico, consultaSocial
         ];
 
         console.log("Valores a serem inseridos:", values);
