@@ -182,24 +182,48 @@ app.post("/empresas", upload.single('foto'), async (req, res) => {
 app.post("/profissional", upload.single('foto'), async (req, res) => {
     try {
         console.log("Recebidos dados para cadastro de profissional:", req.body);
-        const { nome, sobrenome, email, telefone, especialidade, cr, genero, valor, atendimento, cidade, estado, cep, servico } = req.body;
+
+        const {
+            nome, sobrenome, email, telefone,
+            especialidade, cr, genero, valor,
+            atendimento, cidade, estado, cep, servico
+        } = req.body;
+
+        // Verifica se a imagem foi enviada
         const fotoPath = req.file ? req.file.path : null;
         console.log("Caminho da foto:", fotoPath);
 
+        // Validação básica
+        if (!nome || !sobrenome || !email || !especialidade) {
+            return res.status(400).send("Campos obrigatórios faltando");
+        }
+
         const query = `
-            INSERT INTO profissional (nome, sobrenome, email, telefone, especialidade, cr, genero, valor, atendimento, cidade, estado, cep, foto, servico)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            INSERT INTO profissional (
+                nome, sobrenome, email, telefone,
+                especialidade, cr, genero, valor,
+                atendimento, cidade, estado, cep,
+                foto, servico
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
+                    $9, $10, $11, $12, $13, $14)
             RETURNING id, foto
         `;
-        const values = [nome, sobrenome, email, telefone, especialidade, cr, genero, valor, atendimento, cidade, estado, cep, fotoPath, servico];
-        console.log("Query a ser executada:", query);
+
+        const values = [
+            nome, sobrenome, email, telefone,
+            especialidade, cr, genero, valor,
+            atendimento, cidade, estado, cep,
+            fotoPath, servico
+        ];
+
         console.log("Valores a serem inseridos:", values);
 
         const result = await pool.query(query, values);
         res.json(result.rows[0]);
-        console.log("Cadastro de profissional realizado com sucesso no banco de dados.");
+        console.log("Cadastro de profissional realizado com sucesso.");
     } catch (error) {
         console.error("Erro ao adicionar profissional:", error);
-        res.status(500).send("Erro ao adicionar profissional");
+        res.status(500).json({ error: "Erro ao adicionar profissional", detalhes: error.message });
     }
 });
