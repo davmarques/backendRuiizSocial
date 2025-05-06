@@ -24,7 +24,10 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+    storage,
+    limits: {fileSize: 5  * 1024 * 1024}
+});
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
@@ -188,6 +191,8 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
             especialidade, cr, genero, valor,
             atendimento, cidade, estado, cep, servico
         } = req.body;
+
+        valor = valor ? parseFloat(valor) : null;
 
         // Verifica se a imagem foi enviada
         const fotoPath = req.file ? req.file.path : null;
