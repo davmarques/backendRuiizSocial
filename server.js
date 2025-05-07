@@ -188,14 +188,13 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
 
         const {
             nome, sobrenome, email, telefone,
-            especialidade, cr, genero, valorNum,
+            especialidade, cr, genero, valor: valorStr,
             atendimento, cidade, estado, cep, servico
         } = req.body;
 
-        valorNum = valor ? parseFloat(valor) : null;
+        const valorNum = valorStr ? parseFloat(valorStr) : null;
 
         // Verifica se a imagem foi enviada
-        const consultaSocial = req.body.consultaSocial || "sim";
         const fotoPath = req.file ? req.file.path : null;
         console.log("Caminho da foto:", fotoPath);
 
@@ -219,7 +218,7 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
 
         const values = [
             nome, sobrenome, email, telefone,
-            especialidade, cr, genero, valor,
+            especialidade, cr, genero, valorNum,
             atendimento, cidade, estado, cep,
             fotoPath, servico, consultaSocial
         ];
