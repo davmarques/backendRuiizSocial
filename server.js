@@ -209,10 +209,10 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
                 nome, sobrenome, email, telefone,
                 especialidade, cr, genero, valor,
                 atendimento, cidade, estado, cep,
-                foto, servico, consulta_social
+                foto, servico
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-                    $9, $10, $11, $12, $13, $14, $15)
+                    $9, $10, $11, $12, $13, $14)
             RETURNING id, foto
         `;
 
@@ -220,7 +220,7 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
             nome, sobrenome, email, telefone,
             especialidade, cr, genero, valorNum,
             atendimento, cidade, estado, cep,
-            fotoPath, servico, consultaSocial
+            fotoPath, servico
         ];
 
         console.log("Valores a serem inseridos:", values);
