@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
     storage,
-    limits: {fileSize: 5  * 1024 * 1024}
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 const PORT = process.env.PORT || 3000;
 
@@ -101,7 +101,7 @@ app.get("/empresas", async (req, res) => {
 
 app.get("/profissional", async (req, res) => {
     console.log("Requisição GET recebida em /profissional");
-    const { especialidade, valor, genero, atendimento, estado } = req.query;
+    const { especialidade, valor, genero, atendimento, estado, cepProximo } = req.query; // Adicione cepProximo
 
     let query = `SELECT * FROM profissional WHERE TRUE`;
     const params = [];
@@ -152,6 +152,17 @@ app.get("/profissional", async (req, res) => {
         paramIndex++;
     }
 
+    // Filtragem por CEP Próximo
+    if (cepProximo && cepProximo !== "") {
+        const cepProximoNum = parseInt(cepProximo, 10);
+        if(!isNaN(cepProximoNum)){
+            const primeirosDigitos = String(cepProximoNum).substring(0, 3); // Pega os 3 primeiros dígitos
+            query += ` AND SUBSTRING(cep, 1, 3) = $${paramIndex}`; // Adapte para o seu banco de dados (PostgreSQL no exemplo)
+            params.push(primeirosDigitos);
+            paramIndex++;
+        }
+    }
+
     // 👉 LIMITANDO para apenas 30 profissionais
     query += ` LIMIT 30`;
 
@@ -189,10 +200,15 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
         const {
             nome, sobrenome, email, telefone,
             especialidade, cr, genero, valor: valorStr,
-            atendimento, cidade, estado, cep, servico
+            atendimento, cidade, estado, cep, servico, consultaSocial
         } = req.body;
 
-        const valorNum = valorStr ? parseFloat(valorStr) : null;
+        //const valorNum = (consultaSocial === "nao" || !valorStr) ? null : parseFloat(valorStr);
+        let valorNum = null;
+        if (consultaSocial === "sim") {
+            valorNum = valorStr ? parseFloat(valorStr) : 0; // Se consultaSocial = sim, valor é obrigatório, se não existir coloca 0
+        }
+
 
         // Verifica se a imagem foi enviada
         const fotoPath = req.file ? req.file.path : null;
