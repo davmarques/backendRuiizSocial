@@ -101,7 +101,7 @@ app.get("/empresas", async (req, res) => {
 
 app.get("/profissional", async (req, res) => {
     console.log("server.js: Requisição GET recebida em /profissional");
-    const { especialidade, valor, genero, atendimento, estado, cepProximo } = req.query;
+    const { especialidade, valor, genero, atendimento, estado, cep } = req.query; // Alterado de cepProximo para cep
 
     console.log("server.js: Filtros Recebidos:", req.query);
 
@@ -154,11 +154,10 @@ app.get("/profissional", async (req, res) => {
         paramIndex++;
     }
 
-    // Filtragem por CEP Próximo
-    if (cepProximo && cepProximo !== "") {
-        const primeirosDigitos = String(cepProximo).substring(0, 3);
-        query += ` AND SUBSTRING(cep::text, 1, 3) = $${paramIndex}`;
-        params.push(primeirosDigitos);
+    // Filtragem por CEP
+    if (cep && cep !== "") {
+        query += ` AND SUBSTRING(cep::text, 1, 3) = $${paramIndex}`; // Mantido como estava para buscar os 3 primeiros digitos
+        params.push(cep);
         paramIndex++;
     }
 
@@ -201,8 +200,10 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
         const {
             nome, sobrenome, email, telefone,
             especialidade, cr, genero, valor: valorStr,
-            atendimento, cidade, estado, cep, servico, consultaSocial
+            atendimento, cidade, estado, cep,
+            foto, servico, consultaSocial
         } = req.body;
+
 
         let valorNum = null;
         if (consultaSocial === "sim") {
@@ -221,15 +222,15 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
 
 
         const query = `
-            INSERT INTO profissional (
-                nome, sobrenome, email, telefone,
-                especialidade, cr, genero, valor,
-                atendimento, cidade, estado, cep,
-                foto, servico
-            )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-                    $9, $10, $11, $12, $13, $14)
-            RETURNING id, foto
+        INSERT INTO profissional (
+            nome, sobrenome, email, telefone,
+            especialidade, cr, genero, valor,
+            atendimento, cidade, estado, cep,
+            foto, servico
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
+                $9, $10, $11, $12, $13, $14)
+        RETURNING id, foto
         `;
 
         const values = [
