@@ -157,7 +157,7 @@ app.get("/profissional", async (req, res) => {
         const cepProximoNum = parseInt(cepProximo, 10);
         if(!isNaN(cepProximoNum)){
             const primeirosDigitos = String(cepProximoNum).substring(0, 3); // Pega os 3 primeiros dígitos
-            query += ` AND SUBSTRING(cep, 1, 3) = $${paramIndex}`; // Adapte para o seu banco de dados (PostgreSQL no exemplo)
+            query += ` AND SUBSTRING(cep::text, 1, 3) = $${paramIndex}`;
             params.push(primeirosDigitos);
             paramIndex++;
         }
