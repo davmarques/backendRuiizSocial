@@ -33,7 +33,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
 app.get("/empresas", async (req, res) => {
-    console.log("Requisição GET recebida em /empresas");
+    console.log("server.js: Requisição GET recebida em /empresas");
     const { estado, especialidade, valor, genero, atendimento } = req.query;
 
     let query = `SELECT * FROM empresas WHERE TRUE`;
@@ -100,8 +100,10 @@ app.get("/empresas", async (req, res) => {
 
 
 app.get("/profissional", async (req, res) => {
-    console.log("Requisição GET recebida em /profissional");
-    const { especialidade, valor, genero, atendimento, estado, cepProximo } = req.query; // Adicione cepProximo
+    console.log("server.js: Requisição GET recebida em /profissional");
+    const { especialidade, valor, genero, atendimento, estado, cepProximo } = req.query;
+
+    console.log("server.js: Filtros Recebidos:", req.query);
 
     let query = `SELECT * FROM profissional WHERE TRUE`;
     const params = [];
@@ -154,19 +156,18 @@ app.get("/profissional", async (req, res) => {
 
     // Filtragem por CEP Próximo
     if (cepProximo && cepProximo !== "") {
-        const cepProximoNum = parseInt(cepProximo, 10);
-        if(!isNaN(cepProximoNum)){
-            const primeirosDigitos = String(cepProximoNum).substring(0, 3); // Pega os 3 primeiros dígitos
-            query += ` AND SUBSTRING(cep::text, 1, 3) = $${paramIndex}`;
-            params.push(primeirosDigitos);
-            paramIndex++;
-        }
+        const primeirosDigitos = String(cepProximo).substring(0, 3);
+        query += ` AND SUBSTRING(cep::text, 1, 3) = $${paramIndex}`;
+        params.push(primeirosDigitos);
+        paramIndex++;
     }
 
     // 👉 LIMITANDO para apenas 30 profissionais
     query += ` LIMIT 30`;
 
     try {
+        console.log("server.js: Query:", query);
+        console.log("server.js: Params:", params);
         const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (error) {
@@ -176,7 +177,7 @@ app.get("/profissional", async (req, res) => {
 });
 
 app.post("/empresas", upload.single('foto'), async (req, res) => {
-    console.log("Requisição POST recebida em /profissional");
+    console.log("server.js: Requisição POST recebida em /profissional");
     try {
         const { empresa, tipo, email, telefone, cidade, estado, cep, servico } = req.body;
         const fotoPath = req.file ? req.file.path : null;
@@ -186,7 +187,7 @@ app.post("/empresas", upload.single('foto'), async (req, res) => {
             [empresa, tipo, email, telefone, fotoPath, cidade, estado, cep, servico]
         );
         res.json(result.rows[0]);
-        console.log("Formulário de empresa enviado com sucesso!");
+        console.log("server.js: Formulário de empresa enviado com sucesso!");
     } catch (error) {
         console.error(error);
         res.status(500).send("Erro ao adicionar empresa");
@@ -195,7 +196,7 @@ app.post("/empresas", upload.single('foto'), async (req, res) => {
 
 app.post("/profissional", upload.single('foto'), async (req, res) => {
     try {
-        console.log("Recebidos dados para cadastro de profissional:", req.body);
+        console.log("server.js: Recebidos dados para cadastro de profissional:", req.body);
 
         const {
             nome, sobrenome, email, telefone,
@@ -203,16 +204,15 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
             atendimento, cidade, estado, cep, servico, consultaSocial
         } = req.body;
 
-        //const valorNum = (consultaSocial === "nao" || !valorStr) ? null : parseFloat(valorStr);
         let valorNum = null;
         if (consultaSocial === "sim") {
-            valorNum = valorStr ? parseFloat(valorStr) : 0; // Se consultaSocial = sim, valor é obrigatório, se não existir coloca 0
+            valorNum = valorStr ? parseFloat(valorStr) : 0;
         }
 
 
         // Verifica se a imagem foi enviada
         const fotoPath = req.file ? req.file.path : null;
-        console.log("Caminho da foto:", fotoPath);
+        console.log("server.js: Caminho da foto:", fotoPath);
 
         // Validação básica
         if (!nome || !sobrenome || !email || !especialidade) {
@@ -239,13 +239,13 @@ app.post("/profissional", upload.single('foto'), async (req, res) => {
             fotoPath, servico
         ];
 
-        console.log("Valores a serem inseridos:", values);
+        console.log("server.js: Valores a serem inseridos:", values);
 
         const result = await pool.query(query, values);
         res.json(result.rows[0]);
-        console.log("Cadastro de profissional realizado com sucesso.");
+        console.log("server.js: Cadastro de profissional realizado com sucesso.");
     } catch (error) {
-        console.error("Erro ao adicionar profissional:", error);
+        console.error("server.js: Erro ao adicionar profissional:", error);
         res.status(500).json({ error: "Erro ao adicionar profissional", detalhes: error.message });
     }
 });
