@@ -155,9 +155,11 @@ app.get("/profissional", async (req, res) => {
     }
 
     // Filtragem por CEP
+    let cepQuery = '';
+    let cepParam;
     if (cep && cep !== "") {
-        query += ` AND SUBSTRING(cep::text, 1, 3) = $${paramIndex}`; // Mantido como estava para buscar os 3 primeiros digitos
-        params.push(cep);
+        cepQuery = ` AND cep = $${paramIndex}`;
+        cepParam = cep;
         paramIndex++;
     }
 
@@ -165,8 +167,6 @@ app.get("/profissional", async (req, res) => {
     query += ` LIMIT 30`;
 
     try {
-        console.log("server.js: Query:", query);
-        console.log("server.js: Params:", params);
         const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (error) {
