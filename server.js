@@ -70,7 +70,6 @@ app.get("/empresas", async (req, res) => {
 
     if (atendimento && atendimento !== "") {
         if (atendimento === "ambos") {
-            // Não aplica filtro
         } else if (atendimento === "presencial") {
             query += ` AND (LOWER(unaccent(atendimento)) = LOWER(unaccent($${paramIndex})) OR LOWER(unaccent(atendimento)) = LOWER(unaccent('ambos')))`;
             params.push(atendimento);
@@ -86,7 +85,6 @@ app.get("/empresas", async (req, res) => {
         }
     }
 
-    // 👉 LIMITANDO para apenas 30 empresas
     query += ` LIMIT 30`;
 
     try {
@@ -154,16 +152,13 @@ app.get("/profissional", async (req, res) => {
         paramIndex++;
     }
 
-    // Filtragem por CEP
-    let cepQuery = '';
-    let cepParam;
     if (cep && cep !== "") {
-        cepQuery = ` AND cep = $${paramIndex}`;
-        cepParam = cep;
+        const cepPrefix = cep.slice(0, 5);
+        query += ` AND cep LIKE $${paramIndex}`;
+        params.push(`${cepPrefix}%`);
         paramIndex++;
     }
 
-    // 👉 LIMITANDO para apenas 30 profissionais
     query += ` LIMIT 30`;
 
     try {
