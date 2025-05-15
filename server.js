@@ -151,7 +151,7 @@ app.get("/profissional", async (req, res) => {
     }
 
     if (cep && cep !== "") {
-        const cepPrefix = cep.slice(0, 3);
+        const cepPrefix = cep.slice(0, 2);
         query += ` AND cep LIKE $${paramIndex}`;
         params.push(`${cepPrefix}%`);
         paramIndex++;
