@@ -85,8 +85,6 @@ app.get("/empresas", async (req, res) => {
         }
     }
 
-    query += ` LIMIT 30`;
-
     try {
         const result = await pool.query(query, params);
         res.json(result.rows);
@@ -153,13 +151,11 @@ app.get("/profissional", async (req, res) => {
     }
 
     if (cep && cep !== "") {
-        const cepPrefix = cep.slice(0, 5);
+        const cepPrefix = cep.slice(0, 3);
         query += ` AND cep LIKE $${paramIndex}`;
         params.push(`${cepPrefix}%`);
         paramIndex++;
     }
-
-    query += ` LIMIT 30`;
 
     try {
         const result = await pool.query(query, params);
